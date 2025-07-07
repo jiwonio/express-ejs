@@ -68,7 +68,7 @@ app.use(rateLimiter);
 app.use(responseHandler());
 
 // 8. Static
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(path.join(__dirname, 'public'), { extensions: ['html'] }));
 
 // 9. Router
 routerLoader(path.join(__dirname, 'routes'))(app);
