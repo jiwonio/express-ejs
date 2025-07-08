@@ -8,7 +8,8 @@ morgan.token('real-ip', (req) => {
     return req.ip ||
         req.headers['x-forwarded-for'] ||
         req.headers['x-real-ip'] ||
-        req.connection.remoteAddress;
+        req.connection.remoteAddress ||
+        req.socket.remoteAddress;
 });
 
 // morgan session token
