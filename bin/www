@@ -87,4 +87,10 @@ function onListening() {
     ? 'pipe ' + addr
     : 'port ' + addr.port;
   debug('Listening on ' + bind);
+
+  // process.send only exists when running under PM2
+  if (process.send) {
+    process.send('ready');
+    debug('Sent "ready" signal to PM2');
+  }
 }
