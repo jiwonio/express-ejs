@@ -1,4 +1,5 @@
-// middleware/logger.js
+// middleware/accessLogger.js
+
 const morgan = require('morgan');
 const {logger} = require("../modules/logger");
 const path = require("path");

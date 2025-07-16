@@ -1,4 +1,5 @@
-// middleware/loader.js
+// middleware/routerLoader.js
+
 const express = require('express');
 const path = require('path');
 const fs = require('fs');
@@ -15,7 +16,7 @@ const registerRoute = (app, fullPath, cleanRoute) => {
         }
         logger.info(`🚀 Route registered: ${cleanRoute} (${fullPath})`);
     } catch (err) {
-        logger.error(`❌ Error loading route ${fullPath}:`, err.message);
+        logger.error(`❌ Error loading route ${fullPath}: ${err.message}`);
     }
 };
 

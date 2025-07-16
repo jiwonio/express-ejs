@@ -1,5 +1,7 @@
 // middleware/authentication.js
+
 // TODO: check login
+
 const { logger } = require("../modules/logger");
 
 const authentication = (req, res, next) => {

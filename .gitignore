@@ -141,6 +141,12 @@ dist
 # SvelteKit build / generate output
 .svelte-kit
 
+# Storage
+public/uploads/*
+!public/uploads/.gitkeep
+storage/uploads/*
+!storage/uploads/.gitkeep
+
 # misc
 .DS_Store
 .idea

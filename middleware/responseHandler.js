@@ -1,3 +1,5 @@
+// middleware/responseHandler.js
+
 const responseHandler = () => (req, res, next) => {
     // Success
     res.success = function(message = 'Success', data = null) {
