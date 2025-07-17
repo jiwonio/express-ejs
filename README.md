@@ -43,7 +43,8 @@ express-ejs/
 ├── modules/               # Reusable modules
 │   ├── logger.js          # Logging system
 │   ├── db.js              # Database connection
-│   └── uploaders.js       # File upload handling
+│   ├── uploaders.js       # File upload handling
+│   └── validator.js       # Request validation and error handling
 ├── middleware/            # Middleware
 │   ├── accessLogger.js    # Access logging
 │   ├── routerLoader.js    # Dynamic router loading
@@ -62,7 +63,7 @@ express-ejs/
 ## Installation
 ```shell
 # Clone repository
-git clone [repository-url]
+git clone git@github.com:jiwonio/express-ejs.git
 
 # Install dependencies
 npm install
