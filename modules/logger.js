@@ -8,7 +8,11 @@ const path = require('path');
 const logger = winston.createLogger({
     format: winston.format.combine(
         winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
-        winston.format.printf(info => `${info.timestamp} ${info.level.toUpperCase()}: ${info.message}`),
+        winston.format.printf(info => {
+            const { timestamp, level, message, ...args } = info;
+            const messages = [message, ...Object.values(args)].filter(Boolean);
+            return `${timestamp} ${level.toUpperCase()}: ${messages.join(' ')}`;
+        })
     ),
     transports: [
         // console logging (for PM2)
@@ -43,7 +47,11 @@ const createLogger = (folder) => {
             winston.format.timestamp({
                 format: 'YYYY-MM-DD HH:mm:ss'
             }),
-            winston.format.printf(info => `[${info.timestamp}] ${info.message}`)
+            winston.format.printf(info => {
+                const { timestamp, message, ...args } = info;
+                const messages = [message, ...Object.values(args)].filter(Boolean);
+                return `[${timestamp}] ${messages.join(' ')}`;
+            })
         ),
         transports: [
             new winstonDaily({
