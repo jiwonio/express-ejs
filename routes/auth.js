@@ -3,10 +3,11 @@
 const express = require('express');
 const router = express.Router();
 const passport = require('passport');
-const { body, validationResult} = require('express-validator');
+const { body } = require('express-validator');
 const { validate } = require('../modules/validator');
 const User = require('../models/user');
 const { logger } = require('../modules/logger');
+const throttle = require("../modules/throttle");
 
 // Login validation rules
 const loginValidation = [
@@ -56,19 +57,37 @@ const confirmPasswordValidation = [
  * POST /auth/login - Process login form
  */
 router.post('/login', validate(loginValidation), (req, res, next) => {
+    const rememberMe = req.body?.rememberMe === 'true';
+
+    if (req.isAuthenticated()) {
+        return res.error('You are already logged in', 400);
+    }
+
     passport.authenticate('local', (err, user, info) => {
         if (err) {
+            // Exceeded login attempt limit
+            if (err.status === 429) {
+                if (req.accepts('json')) {
+                    return res.error(err.message, err.status, {
+                        remainingTime: err.remainingTime
+                    });
+                }
+                return res.redirect(`/login?error=tooManyAttempts&remainingTime=${err.remainingTime}`);
+            }
+
+            // Authentication failed
+            if (err.status === 401) {
+                if (req.accepts('json')) {
+                    return res.error(err.message, err.status, {
+                        remainingAttempts: err.remainingAttempts
+                    });
+                }
+                return res.redirect(`/login?error=invalid&remainingAttempts=${err.remainingAttempts}`);
+            }
+
+            // Other errors
             logger.error('Login error:', err);
             return next(err);
-        }
-
-        if (!user) {
-            // Handle API requests
-            if (req.accepts('json')) {
-                return res.error('Invalid email or password', 401);
-            }
-            // Handle web requests
-            return res.redirect('/login?error=invalid');
         }
 
         // Log in the user
@@ -76,6 +95,11 @@ router.post('/login', validate(loginValidation), (req, res, next) => {
             if (err) {
                 logger.error('Error logging in user:', err);
                 return next(err);
+            }
+
+            // Remember Me
+            if (rememberMe) {
+                req.session.cookie.maxAge = 30 * 24 * 60 * 60 * 1000; // 30 days
             }
 
             // Handle API requests
@@ -128,8 +152,7 @@ router.post('/register', validate([...registerValidation, ...confirmPasswordVali
 /**
  * GET /auth/logout - Log out the user
  */
-router.get('/logout', (req, res, next) => {
-    // Handle both session and token-based logout
+router.get('/logout', throttle(), (req, res, next) => {
     if (req.isAuthenticated()) {
         req.logout((err) => {
             if (err) {

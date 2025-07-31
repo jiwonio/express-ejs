@@ -5,23 +5,70 @@ const LocalStrategy = require('passport-local').Strategy;
 const User = require('../models/user');
 const { logger } = require('../modules/logger');
 
+// Map to store login attempts
+const loginAttempts = new Map();
+
+// Cleanup expired login attempts
+const cleanupExpiredAttempts = (windowMs) => {
+  const now = Date.now();
+  for (const [ip, data] of loginAttempts.entries()) {
+    if (now - data.lastAttempt > windowMs) {
+      loginAttempts.delete(ip);
+    }
+  }
+};
+
 /**
  * Configure local strategy for use by Passport
  */
-const configureLocalStrategy = () => {
+const configureLocalStrategy = ({
+    maxAttempts = 5,
+    windowMs = 30 * 1000,
+} = {}) => {
   return new LocalStrategy(
       {
         usernameField: 'email',
-        passwordField: 'password'
+        passwordField: 'password',
+        passReqToCallback: true,
       },
-      async (email, password, done) => {
+      async (req, email, password, done) => {
         try {
+          const ip = req.ip ||
+              req.headers['x-forwarded-for'] ||
+              req.headers['x-real-ip'] ||
+              req.connection.remoteAddress ||
+              req.socket.remoteAddress;
+
+          // Clean up expired login attempts
+          cleanupExpiredAttempts(windowMs);
+
+          const attempts = loginAttempts.get(ip) || { count: 0, lastAttempt: 0 };
+          const now = Date.now();
+
+          if (now - attempts.lastAttempt > windowMs) {
+            attempts.count = 0;
+          }
+
+          if (attempts.count >= maxAttempts) {
+            const err = new Error('Too many login attempts. Please try again later.');
+            err.status = 429;
+            err.remainingTime = Math.ceil((attempts.lastAttempt + windowMs - now) / 1000);
+            return done(err);
+          }
+
+          attempts.count += 1;
+          attempts.lastAttempt = now;
+          loginAttempts.set(ip, attempts);
+
           // Find user by email
           const user = await User.findUserByEmail(email);
 
           // If user not found
           if (!user) {
-            return done(null, false, { message: 'Incorrect email or password' });
+            const err = new Error('Incorrect email or password');
+            err.status = 401;
+            err.remainingAttempts = maxAttempts - attempts.count;
+            return done(err);
           }
 
           // Verify password
@@ -29,8 +76,13 @@ const configureLocalStrategy = () => {
 
           // If password is invalid
           if (!isValid) {
-            return done(null, false, { message: 'Incorrect email or password' });
+            const err = new Error('Incorrect email or password');
+            err.status = 401;
+            err.remainingAttempts = maxAttempts - attempts.count;
+            return done(err);
           }
+
+          loginAttempts.delete(ip);
 
           // Update last login time
           await User.updateUserLastLogin(user.id);
