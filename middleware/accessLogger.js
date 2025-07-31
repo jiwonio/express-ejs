@@ -15,9 +15,10 @@ morgan.token('real-ip', (req) => {
 
 // morgan session token
 morgan.token('user-id', (req) => {
-    return req.session?.user_id || '-';
+    return req.isAuthenticated() ? req.user.id : '-';
 });
 
+// morgan middleware
 const accessLogger = morgan(':real-ip [:user-id] :method :url :status :response-time ms', {
     stream: { write: message => logger.info(message.trim()) },
     skip: (req, res) => {

@@ -1,19 +1,22 @@
-// middleware/authentication.js
-
-// TODO: check login
+// middleware/gatekeeper.js
 
 const { logger } = require("../modules/logger");
 
-const authentication = (req, res, next) => {
+/**
+ * A middleware function that serves as a security gatekeeper to control access to routes.
+ */
+const gatekeeper = (req, res, next) => {
     if (process.env.NODE_ENV === 'development') {
         return next();
     }
 
     // public path
     const publicPaths = [
+        '/examples',
         '/login',
-        '/api/auth/login',
-        '/api/auth/logout',
+        '/auth/login',
+        '/auth/logout',
+        '/auth/register',
         '/stylesheets/',
         '/fonts/',
         '/images/',
@@ -24,7 +27,7 @@ const authentication = (req, res, next) => {
     const urlWithoutQuery = req.path.split('?')[0];
 
     // already login
-    if (urlWithoutQuery === '/login' && req.session && req.session.user_id) {
+    if (urlWithoutQuery === '/login' && req.isAuthenticated()) {
         return res.redirect(`/`);
     }
 
@@ -50,22 +53,25 @@ const authentication = (req, res, next) => {
     }
 
     // check session
-    if (!req.session || !req.session.user_id) {
+    if (!req.isAuthenticated()) {
         logger.warn('No authentication information.');
 
         // response text
-        if (req.path.startsWith('/api/')) {
+        if (req.accepts('json')) {
             return res.status(401).json({
                 success: false,
                 message: 'No authentication information.'
             });
         }
 
+        // Store the requested URL for redirection after login
+        req.session.returnTo = req.originalUrl;
+
         // redirect
-        return res.redirect(`/login?error=empty_user`);
+        return res.redirect(`/login?error=unauthorized`);
     }
 
     next();
 };
 
-module.exports = { authentication };
+module.exports = { gatekeeper };

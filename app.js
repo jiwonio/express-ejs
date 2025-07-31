@@ -4,6 +4,8 @@ const path = require('path');
 const cookieParser = require('cookie-parser');
 const session = require('express-session');
 const FileStore = require('session-file-store')(session);
+const configurePassport = require("./middleware/passport");
+const { gatekeeper } = require('./middleware/gatekeeper');
 const helmet = require("helmet");
 const cors = require('cors');
 const { accessLogger } = require("./middleware/accessLogger");
@@ -50,48 +52,49 @@ app.use(session({
   }
 }));
 
-// TODO: Passport
-// app.use(passport.initialize());
-// app.use(passport.session());
-// TODO: or custom auth
-// app.use(authentication);
-// app.use(authorization);
+// 5. Passport & Gatekeeper
+configurePassport()(app);
+app.use(gatekeeper);
 
-// 5. Logger
+// 6. Logger
 app.use(accessLogger);
 
-// 6. Limiter
+// 7. Limiter
 app.use(speedLimiter);
 app.use(rateLimiter);
 
-// 7. Response Handler
+// 8. Response Handler
 app.use(responseHandler());
 
-// 8. Static
+// 9. Static
 app.use(express.static(path.join(__dirname, 'public'), { extensions: ['html'] }));
 
-// 9. Router
+// 10. Router
 routerLoader(path.join(__dirname, 'routes'))(app);
 
 // TODO: - https: nginx
-//       - passport
 //       - cache
+//       - session-redis-store
+//       - ORM (Sequelize, Prisma, TypeORM, ...)
 
-// 10. 404 Error
+// 11. 404 Error
 app.use((req, res, next) => {
   logger.error(`404 Not Found: ${req.originalUrl}`);
   next(createError(404));
 });
 
-// 11. Error
+// 12. Error
 app.use((err, req, res, next) => {
   logger.error(err?.stack);
 
   const status = err.status || 500;
   const message = err.message || 'Internal Server Error';
 
-  if (req.is('json')) {
-    return res.error(message, status);
+  if (req.accepts('json')) {
+    return res.status(status).json({
+      success: false,
+      message
+    });
   }
 
   res.status(status);

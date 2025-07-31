@@ -3,17 +3,23 @@
 const winston = require('winston');
 const winstonDaily = require('winston-daily-rotate-file');
 const path = require('path');
+const cluster = require('cluster');
+
+const logFormat = winston.format.combine(
+    winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
+    winston.format.printf(info => {
+        const { timestamp, level, message } = info;
+        const workerId = cluster.isWorker ? `worker${cluster.worker.id}` : 'master';
+        const splatMessages = (info[Symbol.for('splat')] || [])
+            .map(arg => (typeof arg === 'object' && arg !== null) ? JSON.stringify(arg) : arg)
+            .join(' ');
+        return `${timestamp} [${workerId}] ${level.toUpperCase()}: ${message} ${splatMessages}`.trim();
+    })
+);
 
 // logger
 const logger = winston.createLogger({
-    format: winston.format.combine(
-        winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
-        winston.format.printf(info => {
-            const { timestamp, level, message, ...args } = info;
-            const messages = [message, ...Object.values(args)].filter(Boolean);
-            return `${timestamp} ${level.toUpperCase()}: ${messages.join(' ')}`;
-        })
-    ),
+    format: logFormat,
     transports: [
         // console logging (for PM2)
         new winston.transports.Console(),
@@ -43,16 +49,7 @@ const logger = winston.createLogger({
 // create logger with file
 const createLogger = (folder) => {
     return winston.createLogger({
-        format: winston.format.combine(
-            winston.format.timestamp({
-                format: 'YYYY-MM-DD HH:mm:ss'
-            }),
-            winston.format.printf(info => {
-                const { timestamp, message, ...args } = info;
-                const messages = [message, ...Object.values(args)].filter(Boolean);
-                return `[${timestamp}] ${messages.join(' ')}`;
-            })
-        ),
+        format: logFormat,
         transports: [
             new winstonDaily({
                 dirname: path.join(process.cwd(), 'logs', folder),

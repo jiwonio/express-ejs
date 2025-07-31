@@ -3,9 +3,14 @@
 const express = require('express');
 const router = express.Router();
 
-/* GET home page. */
-router.get('/', function(req, res, next) {
+/* GET '/' */
+router.get('/', (req, res, next) => {
   res.render('index', { title: 'Express' });
+});
+
+/* GET '/login' */
+router.get('/login', (req, res, next) => {
+  res.success('Login page');
 });
 
 module.exports = router;
