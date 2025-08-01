@@ -20,6 +20,7 @@ module.exports = {
       max_memory_restart : "300M",
       args: ["development"],
       env: {
+        TZ: "Asia/Seoul",
         NODE_ENV: "development",
         NODE_NO_WARNINGS: "0", // display warning
         PORT: 3009,
@@ -45,6 +46,7 @@ module.exports = {
       max_memory_restart : "300M",
       args: ["production"],
       env: {
+        TZ: "Asia/Seoul",
         NODE_ENV: "production",
         NODE_NO_WARNINGS: "1",
         PORT: 3009,
