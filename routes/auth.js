@@ -7,7 +7,7 @@ const { body } = require('express-validator');
 const { validate } = require('../modules/validator');
 const User = require('../models/user');
 const { logger } = require('../modules/logger');
-const throttle = require("../modules/throttle");
+const throttler = require("../modules/throttler");
 
 // Login validation rules
 const loginValidation = [
@@ -152,7 +152,7 @@ router.post('/register', validate([...registerValidation, ...confirmPasswordVali
 /**
  * GET /auth/logout - Log out the user
  */
-router.get('/logout', throttle(), (req, res, next) => {
+router.get('/logout', throttler(), (req, res, next) => {
     if (req.isAuthenticated()) {
         req.logout((err) => {
             if (err) {

@@ -1,4 +1,4 @@
-// modules/throttle.js
+// modules/throttler.js
 
 const { rateLimit } = require('express-rate-limit');
 const { slowDown } = require('express-slow-down');
@@ -12,7 +12,7 @@ const { logger } = require('../modules/logger');
  * @param {number} [options.delayAfter=50] - Number of requests before starting the delay
  * @param {number} [options.delayMs=500] - Request delay time (ms)
  */
-const throttle = ({
+const throttler = ({
   windowMs = 15 * 60 * 1000,
   limit = 100,
   delayAfter = 50,
@@ -23,11 +23,8 @@ const throttle = ({
     const speed = slowDown({
         windowMs,
         delayAfter,
-        delayMs,
-        keyGenerator,
-        onLimitReached: (req) => {
-            logger.warn(`Speed limit reached: ${req.method} ${req.path} from ${req.ip}`);
-        }
+        delayMs: () => delayMs,
+        keyGenerator
     });
 
     const rate = rateLimit({
@@ -35,7 +32,13 @@ const throttle = ({
         limit,
         keyGenerator,
         handler: (req, res) => {
-            logger.warn(`Rate limit exceeded: ${req.method} ${req.path} from ${req.ip}`);
+            const ip = req.ip ||
+                req.headers['x-forwarded-for'] ||
+                req.headers['x-real-ip'] ||
+                req.connection.remoteAddress ||
+                req.socket.remoteAddress;
+
+            logger.warn(`Rate limit exceeded: ${req.method} ${req.path} from ${ip}`);
             res.error('Too many requests', 429);
         }
     });
@@ -43,4 +46,4 @@ const throttle = ({
     return [speed, rate];
 };
 
-module.exports = throttle;
+module.exports = throttler;
