@@ -15,8 +15,7 @@ const { rateLimit } = require('express-rate-limit');
 const { slowDown } = require('express-slow-down');
 const responseHandler = require("./middleware/responseHandler");
 const compression = require("compression");
-const speedLimiter = slowDown({ windowMs: 15 * 60 * 1000, delayAfter: 50, delayMs: () => 2000 });
-const rateLimiter = rateLimit({ windowMs: 15 * 60 * 1000 /* 15 minutes */, limit: 100 });
+const throttler = require("./modules/throttler");
 require('dotenv').config();
 
 const app = express();
@@ -59,9 +58,8 @@ app.use(gatekeeper);
 // 6. Logger
 app.use(accessLogger);
 
-// 7. Limiter
-app.use(speedLimiter);
-app.use(rateLimiter);
+// 7. Throttler
+app.use(throttler());
 
 // 8. Response Handler
 app.use(responseHandler());
