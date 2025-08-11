@@ -15,12 +15,18 @@ const logQuery = (query, params) => {
 
 // connection wrapper
 const wrapConnection = (conn) => {
+    if (conn.isWrapped) {
+        return conn;
+    }
+
     const originalExecute = conn.execute.bind(conn);
     conn.execute = async (...args) => {
         const [query, params] = args;
         logQuery(query, params);
         return originalExecute(...args);
     };
+
+    conn.isWrapped = true;
     return conn;
 };
 
@@ -35,25 +41,15 @@ const getPool = () => {
             waitForConnections: true,
             enableKeepAlive: true
         });
-
-        // query logging
-        const originalQuery = pool.query.bind(pool);
-        pool.query = async (...args) => {
-            const [query, params] = args;
-
-            // logging - !SELECT
-            logQuery(query, params);
-
-            return originalQuery(...args);
-        };
     }
     return pool;
 };
 
 const db = async (sql, params = []) => {
     const conn = await getPool().getConnection();
+    const wrappedConn = wrapConnection(conn);
     try {
-        const [rows] = await conn.execute(sql, params);
+        const [rows] = await wrappedConn.execute(sql, params);
         return rows;
     } finally {
         conn.release();
@@ -73,7 +69,7 @@ const transaction = async (callback) => {
         await wrappedConn.rollback();
         throw err;
     } finally {
-        wrappedConn.release();
+        conn.release();
     }
 };
 
