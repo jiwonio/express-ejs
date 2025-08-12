@@ -1,94 +1,111 @@
 # Express EJS 🚀
 
 ## Introduction
-A robust web application boilerplate using Express.js and EJS template engine, featuring multi-cloud storage support, security, and logging capabilities.
+A robust Express.js 5 + EJS 3 boilerplate with secure defaults, structured middleware, dynamic router loading, file uploads, and production-ready logging. The stack uses modern ESM (type: module) and path aliases defined in package.json.
 
 ## Features
 
 ### Template Engine
 - EJS 3.1.10 integration
-- Layout system
+- Layout-friendly partials
 - Dynamic page rendering
 
 ### File Upload System
-- Multi-cloud storage support:
-    - AWS S3
-    - Azure Blob Storage
-    - Google Cloud Storage
-    - Naver Cloud Platform
-    - Local storage
+- Multer-based uploads with pluggable storage
+- Local storage out of the box (public/uploads)
+- Cloud providers prepared (commented placeholders until SDKs installed):
+  - AWS S3, Azure Blob Storage, Google Cloud Storage, Naver Cloud Platform
+- Automatic MIME type validation, file size limits, custom paths
 
-- Automatic MIME type detection
-- File size limits
-- Custom path configuration
-
-### Security Features
-- Helmet.js integration
+### Security & Sessions
+- Helmet security headers
 - CORS enabled
-- Rate limiting
-- Speed limiting
-- Session management (FileStore)
-- Compression support
+- Rate limiting + Slowdown (express-rate-limit, express-slow-down)
+- Session management via express-session + session-file-store
+- Compression (gzip)
+
+### Authentication & Access Control
+- Passport.js (Local strategy) with login-attempt throttling
+- Gatekeeper middleware: in production, restricts access to non-public routes unless authenticated
 
 ### Advanced Logging
-- Winston logger with daily rotation
-- Morgan HTTP request logging
-- Environment-specific log files
+- Winston with daily rotation (winston-daily-rotate-file)
+- Morgan HTTP access logging (custom tokens: real-ip, user-id)
+- Per-environment logs under logs/
 
 ## Project Structure
 ```
 express-ejs/
 ├── bin/
-│   └── www                # Application entry point
-├── modules/               # Reusable modules
-│   ├── logger.js          # Logging system
-│   ├── db.js              # Database connection
-│   ├── uploaders.js       # File upload handling
-│   └── validator.js       # Request validation and error handling
-├── middleware/            # Middleware
-│   ├── accessLogger.js    # Access logging
-│   ├── routerLoader.js    # Dynamic router loading
-│   └── responseHandler.js # Response handling
-├── public/                # Static files
-│   └── uploads/           # Uploaded files
-├── routes/                # Routers
-├── views/                 # EJS templates
-└── sessions/              # Session storage
+│   └── www                    # Application entry point
+├── ecosystem.config.cjs       # PM2 process configuration (dev/prod)
+├── middleware/                # Middleware
+│   ├── accessLogger.js        # Access logging via morgan → winston
+│   ├── gatekeeper.js          # Auth gate for protected routes (prod)
+│   ├── passport.js            # Passport local strategy + session wiring
+│   ├── responseHandler.js     # res.success / res.error helpers
+│   └── routerLoader.js        # Dynamic router auto-mounting
+├── models/                    # Database models
+├── public/                    # Static files served by Express
+│   └── uploads/               # Uploaded files (local storage)
+├── routes/                    # Route modules (auto-loaded)
+├── sessions/                  # Session storage (FileStore)
+├── utils/                     # Reusable utilities
+│   ├── authorizer.js          # Role/permission guards
+│   ├── db.js                  # MySQL pool + transaction helpers
+│   ├── logger.js              # Winston logger factory
+│   ├── throttler.js           # Rate/slow-down combinator
+│   ├── uploader.js            # Multer + storage dispatcher (local/cloud)
+│   └── validator.js           # express-validator integration
+├── views/                     # EJS templates
+├── app.js                     # Main Express app (middleware pipeline)
+├── package.json               # ESM + path aliases (imports)
+└── .env(.example)             # Environment configuration
 ```
 
 ## Prerequisites
-- Node.js >= 14.x
-- npm >= 6.x
+- Node.js >= 18.x
+- npm >= 9.x
+- PM2 (optional) for process management
 
 ## Installation
 ```shell
 # Clone repository
 git clone git@github.com:jiwonio/express-ejs.git
+cd express-ejs
 
 # Install dependencies
 npm install
 
-# Create environment configuration
+# Copy environment configuration
 cp .env.example .env
+# On Windows (PowerShell): Copy-Item .env.example .env
 ```
 
 ## Running the Application
 
-### Development Mode
+- NPM script (local):
 ```shell
-pm2 start ecosystem.config.js --only express-ejs/development
+npm start
+```
+The server reads PORT from the environment (defaults to 3000). See bin/www.
+
+- PM2 (development):
+```shell
+pm2 start ecosystem.config.cjs --only express-ejs/development
 ```
 
-### Production Mode
+- PM2 (production):
 ```shell
-pm2 start ecosystem.config.js --only express-ejs/production
+pm2 start ecosystem.config.cjs --only express-ejs/production
 ```
+The PM2 config sets PORT=3009 by default and uses wait_ready so the process signals readiness after listening.
 
 ## Configuration
-Configure the following in your file: `.env`
+Configure the following in your .env (see .env.example for a starting point):
 ```
-# Storage Configuration
-STORAGE_TYPE=local  # local, s3, azure, gcp, ncp
+# Storage Configuration (local, s3, azure, gcp, ncp)
+STORAGE_TYPE=local
 
 # AWS S3 Configuration
 AWS_ACCESS_KEY_ID=your_access_key
@@ -121,65 +138,78 @@ DB_DATABASE=your_database
 ```
 
 ## File Upload Usage
+utils/uploader.js exports a default uploader object with presets (profile, product, sample, default). Each preset provides .single(field) and .array(field, maxCount) that return arrays of middleware (multer + storage writer).
+
 ```javascript
-const { uploader } = require('./modules/uploaders');
+import express from 'express';
+import uploader from '#utils/uploader';
 
-// Single file upload
-router.post('/upload', 
-    uploader.profile.single('avatar'),
-    (req, res) => {
-        res.json({ url: req.file.location });
-    }
+const router = express.Router();
+
+// Single file upload (profile avatar)
+router.post(
+  '/upload',
+  ...uploader.profile.single('avatar'),
+  (req, res) => {
+    return res.json({ url: req.file?.location }); // location is set by storage layer
+  }
 );
 
-// Multiple file upload
-router.post('/upload-multiple',
-    uploader.product.array('photos', 5),
-    (req, res) => {
-        const urls = req.files.map(file => file.location);
-        res.json({ urls });
-    }
+// Multiple files upload (product photos)
+router.post(
+  '/upload-multiple',
+  ...uploader.product.array('photos', 5),
+  (req, res) => {
+    const urls = (req.files || []).map(f => f.location);
+    return res.json({ urls });
+  }
 );
+
+export default router;
 ```
 
-## Core Features
-The following features are integrated:
-- Dynamic Router Loading
-- Database Connection Pool
-- Compression (compression)
-- Rate Limiting (express-rate-limit)
-- Speed Limiting (express-slow-down)
-- Session Management (express-session)
-- CORS Protection
-- Helmet Security Headers
-- Response Handling
+Notes:
+- Local storage works out of the box and saves files under public/uploads (returned URLs are web-accessible).
+- Cloud providers are prepared but commented in utils/uploader.js. To use them, install the SDKs and enable the storage in getStorage():
+  - AWS S3: @aws-sdk/client-s3 @aws-sdk/lib-storage
+  - GCP: @google-cloud/storage
+  - Azure: @azure/storage-blob
+  - NCP: aws-sdk
+
+## Middleware Pipeline (app.js)
+Order of middleware (simplified):
+1. compression
+2. helmet, cors
+3. parsers (json, urlencoded, cookies)
+4. session (FileStore)
+5. passport initialization + session
+6. gatekeeper (protect routes in production)
+7. accessLogger (morgan → winston)
+8. throttler (slowDown + rateLimit)
+9. responseHandler (res.success / res.error)
+10. static files (public/)
+11. dynamic router loading (routes/**/*)
+12. 404 and centralized error handler
 
 ## Logging
-Logs are automatically rotated daily and stored in the `logs` directory:
-- Access logs
-- Error logs
-- Application logs
-
-## Future Enhancements
-- HTTPS support via Nginx
-- Passport.js authentication
-- Caching layer
-- Custom authentication/authorization
+- All logs are written under logs/ with daily rotation
+- Access logs via morgan, application/error logs via winston
+- Cluster-aware prefixes (master/worker) in log lines
 
 ## Contributing
 Contributions are always welcome! Feel free to submit a Pull Request.
 
 ## License
-This project is licensed under the UNLICENSE.
+This project is licensed under The Unlicense (see LICENSE).
 
 ## Dependencies
+The main runtime dependencies (from package.json):
 ```json
 {
   "bcrypt": "^6.0.0",
   "compression": "^1.8.0",
   "cookie-parser": "~1.4.4",
   "cors": "^2.8.5",
-  "debug": "~2.6.9",
   "dotenv": "^16.5.0",
   "ejs": "3.1.10",
   "express": "5.1.0",
@@ -190,8 +220,10 @@ This project is licensed under the UNLICENSE.
   "helmet": "^8.1.0",
   "http-errors": "~1.6.3",
   "morgan": "~1.9.1",
-  "multer": "^2.0.0",
+  "multer": "2.0.2",
   "mysql2": "^3.14.1",
+  "passport": "^0.7.0",
+  "passport-local": "^1.0.0",
   "session-file-store": "^1.5.0",
   "winston": "^3.17.0",
   "winston-daily-rotate-file": "^5.0.0"

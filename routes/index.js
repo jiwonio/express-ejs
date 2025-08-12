@@ -1,6 +1,6 @@
 // routes/index.js
 
-const express = require('express');
+import express from 'express';
 const router = express.Router();
 
 /* GET '/' */
@@ -13,4 +13,4 @@ router.get('/login', (req, res, next) => {
   res.success('Login page');
 });
 
-module.exports = router;
+export default router;

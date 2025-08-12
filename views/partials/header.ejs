@@ -3,6 +3,12 @@
 <head>
     <title><%= title %></title>
     <link rel='stylesheet' href='/stylesheets/style.css' />
+
+    <!-- 
+      Use type="module" to load main.js as a module.
+      The defer attribute ensures the script runs after HTML parsing, preventing page loading blocks.
+    -->
+    <script type="module" src="/javascripts/main.js" defer></script>
 </head>
 <body>
 <header>

@@ -1,13 +1,14 @@
 // routes/auth.js
 
-const express = require('express');
+import express from 'express';
+import passport from 'passport';
+import { body } from 'express-validator';
+import validate from '#utils/validator';
+import User from '#models/user';
+import { logger } from '#utils/logger';
+import throttler from '#utils/throttler';
+
 const router = express.Router();
-const passport = require('passport');
-const { body } = require('express-validator');
-const { validate } = require('../modules/validator');
-const User = require('../models/user');
-const { logger } = require('../modules/logger');
-const throttler = require("../modules/throttler");
 
 // Login validation rules
 const loginValidation = [
@@ -167,5 +168,4 @@ router.get('/logout', throttler(), (req, res, next) => {
   }
 });
 
-// Export the router
-module.exports = router;
+export default router;

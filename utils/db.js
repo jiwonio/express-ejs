@@ -1,8 +1,9 @@
 // modules/db.js
 
-const mysql = require('mysql2/promise');
-const {createLogger} = require("./logger");
-require('dotenv').config();
+import mysql from 'mysql2/promise';
+import { createLogger } from '#utils/logger'
+import dotenv from 'dotenv';
+dotenv.config();
 
 let pool = null;
 
@@ -73,4 +74,4 @@ const transaction = async (callback) => {
   }
 };
 
-module.exports = { db, transaction };
+export { db, transaction }

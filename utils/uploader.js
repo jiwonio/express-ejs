@@ -1,9 +1,9 @@
 // modules/uploader.js
 
-const multer = require('multer');
-const path = require('path');
-const fs = require('fs').promises;
-const createError = require('http-errors');
+import multer from 'multer';
+import path from 'path';
+import fs from 'fs/promises';
+import createError from 'http-errors';
 
 // Basic configuration
 const config = {
@@ -26,19 +26,19 @@ const localStorage = (destination) => async (file, customPath) => {
 
 // AWS S3 Storage
 const s3Storage = () => {
-  // TODO: npm install @aws-sdk/client-s3 @aws-sdk/lib-storage
-  const { S3Client } = require('@aws-sdk/client-s3');
-  const { Upload } = require('@aws-sdk/lib-storage');
-
-  const s3Client = new S3Client({
-    region: process.env.AWS_REGION,
-    credentials: {
-      accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-      secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY
-    }
-  });
-
   return async (file, customPath) => {
+    // TODO: npm install @aws-sdk/client-s3 @aws-sdk/lib-storage
+    const { S3Client } = await import('@aws-sdk/client-s3');
+    const { Upload } = await import('@aws-sdk/lib-storage');
+
+    const s3Client = new S3Client({
+      region: process.env.AWS_REGION,
+      credentials: {
+        accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+        secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY
+      }
+    });
+
     const key = `${customPath}${Date.now()}-${file.originalname}`;
     await new Upload({
       client: s3Client,
@@ -56,21 +56,21 @@ const s3Storage = () => {
 
 // NCP Object Storage
 const ncpStorage = () => {
-  // TODO: npm install aws-sdk
-  const AWS = require('aws-sdk');
-
-  // NCP는 AWS S3 호환 API를 사용합니다
-  const s3 = new AWS.S3({
-    endpoint: 'https://kr.object.ncloudstorage.com',
-    region: 'kr-standard',
-    credentials: {
-      accessKeyId: process.env.NCP_ACCESS_KEY,
-      secretAccessKey: process.env.NCP_SECRET_KEY
-    }
-  });
-  const bucket = process.env.NCP_BUCKET;
-
   return async (file, customPath) => {
+    // TODO: npm install aws-sdk
+    const AWS = await import('aws-sdk');
+
+    // NCP는 AWS S3 호환 API를 사용합니다
+    const s3 = new AWS.S3({
+      endpoint: 'https://kr.object.ncloudstorage.com',
+      region: 'kr-standard',
+      credentials: {
+        accessKeyId: process.env.NCP_ACCESS_KEY,
+        secretAccessKey: process.env.NCP_SECRET_KEY
+      }
+    });
+    const bucket = process.env.NCP_BUCKET;
+
     const key = `${customPath}${Date.now()}-${file.originalname}`;
     await s3.putObject({
       Bucket: bucket,
@@ -85,12 +85,12 @@ const ncpStorage = () => {
 
 // GCP Storage
 const gcpStorage = () => {
-  // TODO: npm install @google-cloud/storage
-  const { Storage } = require('@google-cloud/storage');
-  const storage = new Storage();
-  const bucket = storage.bucket(process.env.GCP_BUCKET);
-
   return async (file, customPath) => {
+    // TODO: npm install @google-cloud/storage
+    const { Storage } = await import('@google-cloud/storage');
+    const storage = new Storage();
+    const bucket = storage.bucket(process.env.GCP_BUCKET);
+
     const filename = `${customPath}${Date.now()}-${file.originalname}`;
     const blob = bucket.file(filename);
 
@@ -108,12 +108,12 @@ const gcpStorage = () => {
 
 // Azure Blob Storage
 const azureStorage = () => {
-  // TODO: npm install @azure/storage-blob
-  const { BlobServiceClient } = require('@azure/storage-blob');
-  const blobServiceClient = BlobServiceClient.fromConnectionString(process.env.AZURE_STORAGE_CONNECTION_STRING);
-  const containerClient = blobServiceClient.getContainerClient(process.env.AZURE_STORAGE_CONTAINER);
-
   return async (file, customPath) => {
+    // TODO: npm install @azure/storage-blob
+    const { BlobServiceClient } = await import('@azure/storage-blob');
+    const blobServiceClient = BlobServiceClient.fromConnectionString(process.env.AZURE_STORAGE_CONNECTION_STRING);
+    const containerClient = blobServiceClient.getContainerClient(process.env.AZURE_STORAGE_CONTAINER);
+
     const blobName = `${customPath}${Date.now()}-${file.originalname}`;
     const blockBlobClient = containerClient.getBlockBlobClient(blobName);
 
@@ -210,4 +210,4 @@ const uploader = {
   default: createUploader()
 };
 
-module.exports = { uploader };
+export default uploader;

@@ -1,9 +1,10 @@
 // middleware/passport.js
 
-const passport = require('passport');
-const LocalStrategy = require('passport-local').Strategy;
-const User = require('../models/user');
-const {logger} = require('../modules/logger');
+import passport from 'passport';
+import passportLocal from 'passport-local';
+const LocalStrategy = passportLocal.Strategy;
+import User from '#models/user';
+import { logger } from '#utils/logger';
 
 // Map to store login attempts
 const loginAttempts = new Map();
@@ -136,4 +137,4 @@ const configurePassport = () => {
 
 };
 
-module.exports = configurePassport;
+export default configurePassport;

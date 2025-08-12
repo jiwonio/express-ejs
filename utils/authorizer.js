@@ -1,6 +1,6 @@
 // middleware/authorization.js
 
-const { logger } = require("../modules/logger");
+import { logger } from '#utils/logger';
 
 /**
  * Check if user has required role
@@ -110,7 +110,4 @@ const permission = (permissions) => {
   };
 };
 
-module.exports = {
-  role,
-  permission
-};
+export { role, permission }

@@ -1,25 +1,27 @@
-const createError = require('http-errors');
-const express = require('express');
-const path = require('path');
-const cookieParser = require('cookie-parser');
-const session = require('express-session');
-const FileStore = require('session-file-store')(session);
-const configurePassport = require("./middleware/passport");
-const { gatekeeper } = require('./middleware/gatekeeper');
-const helmet = require("helmet");
-const cors = require('cors');
-const { accessLogger } = require("./middleware/accessLogger");
-const {logger} = require("./modules/logger");
-const routerLoader = require("./middleware/routerLoader");
-const responseHandler = require("./middleware/responseHandler");
-const compression = require("compression");
-const throttler = require("./modules/throttler");
-require('dotenv').config();
+import createError from 'http-errors';
+import express from 'express';
+import path from 'path';
+import cookieParser from 'cookie-parser';
+import session from 'express-session';
+import sessionFileStore from 'session-file-store';
+import configurePassport from '#middleware/passport';
+import gatekeeper from '#middleware/gatekeeper';
+import helmet from 'helmet';
+import cors from 'cors';
+import accessLogger from '#middleware/accessLogger';
+import { logger } from '#utils/logger';
+import routerLoader from '#middleware/routerLoader';
+import responseHandler from '#middleware/responseHandler';
+import compression from 'compression';
+import throttler from '#utils/throttler';
+import dotenv from 'dotenv';
+dotenv.config();
 
 const app = express();
+const FileStore = sessionFileStore(session);
 
 // 0. view engine setup
-app.set('views', path.join(__dirname, 'views'));
+app.set('views', path.join(import.meta.dirname, 'views'));
 app.set('view engine', 'ejs');
 
 // 1. Compression
@@ -63,10 +65,10 @@ app.use(throttler());
 app.use(responseHandler());
 
 // 9. Static
-app.use(express.static(path.join(__dirname, 'public'), { extensions: ['html'] }));
+app.use(express.static(path.join(import.meta.dirname, 'public'), { extensions: ['html'] }));
 
 // 10. Router
-routerLoader(path.join(__dirname, 'routes'))(app);
+await routerLoader(path.join(import.meta.dirname, 'routes'))(app);
 
 // TODO: - https: nginx
 //       - cache
@@ -101,4 +103,4 @@ app.use((err, req, res, next) => {
   });
 });
 
-module.exports = app;
+export default app;

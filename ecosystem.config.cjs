@@ -1,8 +1,8 @@
 // development mode
-// pm2 start ecosystem.config.js --only express-ejs/development
+// pm2 start ecosystem.config.cjs --only express-ejs/development
 
 // production mode
-// pm2 start ecosystem.config.js --only express-ejs/production
+// pm2 start ecosystem.config.cjs --only express-ejs/production
 
 module.exports = {
   apps : [
@@ -24,8 +24,7 @@ module.exports = {
         NODE_ENV: "development",
         NODE_NO_WARNINGS: "0", // display warning
         PORT: 3009,
-        HOST: "0.0.0.0",
-        DEBUG: "express-ejs:*"
+        HOST: "0.0.0.0"
       },
       wait_ready: true,
       kill_timeout: 5000,
@@ -50,8 +49,7 @@ module.exports = {
         NODE_ENV: "production",
         NODE_NO_WARNINGS: "1",
         PORT: 3009,
-        HOST: "0.0.0.0",
-        DEBUG: "express-ejs:*"
+        HOST: "0.0.0.0"
       },
       wait_ready: true,
       kill_timeout: 5000,

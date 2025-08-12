@@ -1,6 +1,6 @@
 // middleware/gatekeeper.js
 
-const { logger } = require("../modules/logger");
+import { logger } from '#utils/logger';
 
 /**
  * A middleware function that serves as a security gatekeeper to control access to routes.
@@ -74,4 +74,4 @@ const gatekeeper = (req, res, next) => {
   next();
 };
 
-module.exports = { gatekeeper };
+export default gatekeeper;

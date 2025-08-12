@@ -1,12 +1,11 @@
 // routes/users.js
 
-const express = require('express');
+import express from 'express';
+import User from '#models/user';
+import { role, permission } from '#utils/authorizer';
+import { logger } from '#utils/logger';
+
 const router = express.Router();
-const User = require('../models/user');
-const {role, permission} = require("../modules/authorizer");
-const {validate} = require("../modules/validator");
-const {body} = require("express-validator");
-const {logger} = require("../modules/logger");
 
 /**
  * GET /users - Get all users (admin only)
@@ -62,4 +61,4 @@ router.get('/:id', permission('read:users'), async (req, res, next) => {
   }
 });
 
-module.exports = router;
+export default router;

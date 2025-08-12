@@ -1,9 +1,10 @@
 // routes/examples/validator.js
 
-const express = require('express');
+import express from 'express';
+import { body, query, param } from 'express-validator';
+import validate from '#utils/validator';
+
 const router = express.Router();
-const { body, query, param } = require('express-validator');
-const { validate } = require("../../modules/validator");
 
 /**
  * express-validator examples
@@ -123,4 +124,4 @@ router.post('/product', validate([
   });
 });
 
-module.exports = router;
+export default router;

@@ -1,9 +1,10 @@
 // routes/examples/index.js
 
-const express = require('express');
+import express from 'express';
+import { logger } from '#utils/logger';
+import uploader from '#utils/uploader';
+
 const router = express.Router();
-const { logger } = require('../../modules/logger');
-const { uploader } = require("../../modules/uploader");
 
 /**
  * GET /examples
@@ -24,5 +25,4 @@ router.post('/upload', uploader.sample.array('test'), (req, res, next) => {
   res.success('success', req?.file?.originalname || req?.files?.map(file => file.originalname) || [] );
 });
 
-
-module.exports = router;
+export default router;

@@ -1,8 +1,8 @@
 // middleware/accessLogger.js
 
-const morgan = require('morgan');
-const {logger} = require("../modules/logger");
-const path = require("path");
+import morgan from 'morgan';
+import { logger } from '#utils/logger';
+import path from 'path';
 
 // morgan ip token
 morgan.token('real-ip', (req) => {
@@ -31,4 +31,4 @@ const accessLogger = morgan(':real-ip [:user-id] :method :url :status :response-
   }
 });
 
-module.exports = { accessLogger };
+export default accessLogger;

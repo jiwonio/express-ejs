@@ -1,9 +1,9 @@
 // modules/logger.js
 
-const winston = require('winston');
-const winstonDaily = require('winston-daily-rotate-file');
-const path = require('path');
-const cluster = require('cluster');
+import winston from 'winston';
+import winstonDaily from 'winston-daily-rotate-file';
+import path from 'path';
+import cluster from 'cluster';
 
 const logFormat = winston.format.combine(
   winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
@@ -63,4 +63,4 @@ const createLogger = (folder) => {
   });
 }
 
-module.exports = { logger, createLogger };
+export { logger, createLogger };

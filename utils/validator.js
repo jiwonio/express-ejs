@@ -1,6 +1,6 @@
 // modules/validator.js
 
-const { validationResult } = require('express-validator');
+import { validationResult } from 'express-validator';
 
 // Validation result handling middleware
 const handleValidationErrors = (req, res, next) => {
@@ -28,4 +28,4 @@ const validate = (rules) => {
   ];
 };
 
-module.exports = { validate };
+export default validate;

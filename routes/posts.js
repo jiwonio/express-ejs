@@ -1,12 +1,13 @@
 // routes/posts.js
 
-const express = require('express');
+import express from 'express';
+import { body } from 'express-validator';
+import validate from '#utils/validator';
+import Post from '#models/post';
+import { role, permission } from '#utils/authorizer';
+import { logger } from '#utils/logger';
+
 const router = express.Router();
-const { body } = require('express-validator');
-const { validate } = require('../modules/validator');
-const Post = require('../models/post');
-const { role, permission } = require('../modules/authorizer');
-const { logger } = require('../modules/logger');
 
 // Post validation rules
 const postValidation = [
@@ -184,4 +185,4 @@ router.delete('/:id', permission('delete:posts'), async (req, res, next) => {
   }
 });
 
-module.exports = router;
+export default router;

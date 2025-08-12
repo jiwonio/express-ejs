@@ -1,7 +1,7 @@
 // models/users.js
 
-const {db, transaction} = require("../modules/db");
-const bcrypt = require('bcrypt');
+import { db, transaction } from '#utils/db';
+import bcrypt from 'bcrypt';
 
 /*
 ```mysql
@@ -182,4 +182,4 @@ class User {
   }
 }
 
-module.exports = User;
+export default User;

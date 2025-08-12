@@ -1,8 +1,8 @@
 // modules/throttler.js
 
-const { rateLimit } = require('express-rate-limit');
-const { slowDown } = require('express-slow-down');
-const { logger } = require('./logger');
+import { rateLimit } from 'express-rate-limit';
+import { slowDown } from 'express-slow-down';
+import { logger } from '#utils/logger';
 
 /**
  * Create limiters option
@@ -64,4 +64,4 @@ const throttler = (options = {}) => {
   };
 };
 
-module.exports = throttler;
+export default throttler;

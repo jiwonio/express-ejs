@@ -1,6 +1,6 @@
 // models/post.js
 
-const { db, transaction } = require("../modules/db");
+import { db, transaction } from '#utils/db';
 
 /*
 ```mysql
@@ -200,4 +200,4 @@ class Post {
   }
 }
 
-module.exports = Post;
+export default Post;
