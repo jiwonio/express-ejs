@@ -4,16 +4,16 @@ const { validationResult } = require('express-validator');
 
 // Validation result handling middleware
 const handleValidationErrors = (req, res, next) => {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-        return res.error('Validation failed', 400,
-            errors.array().map(err => ({
-                field: err.path,
-                message: err.msg
-            }))
-        );
-    }
-    next();
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.error('Validation failed', 400,
+      errors.array().map(err => ({
+        field: err.path,
+        message: err.msg
+      }))
+    );
+  }
+  next();
 };
 
 /**
@@ -22,10 +22,10 @@ const handleValidationErrors = (req, res, next) => {
  * @returns {Array} - middleware array
  */
 const validate = (rules) => {
-    return [
-        ...rules,
-        handleValidationErrors
-    ];
+  return [
+    ...rules,
+    handleValidationErrors
+  ];
 };
 
 module.exports = { validate };

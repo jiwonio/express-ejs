@@ -14,7 +14,7 @@ const postValidation = [
     .trim()
     .isLength({ min: 3, max: 255 })
     .withMessage('Title must be between 3 and 255 characters'),
-  
+
   body('content')
     .trim()
     .isLength({ min: 10 })
@@ -119,7 +119,7 @@ router.post('/', permission('create:posts'), validate(postValidation), async (re
     });
 
     const newPost = await Post.findPostById(postId);
-    
+
     res.success('Post created successfully', newPost);
   } catch (error) {
     logger.error('Error creating post:', error);
@@ -148,7 +148,7 @@ router.put('/:id', permission('update:posts'), validate(postValidation), async (
 
     // Update post
     const updatedPost = await Post.updatePost(postId, { title, content });
-    
+
     res.success('Post updated successfully', updatedPost);
   } catch (error) {
     logger.error('Error updating post:', error);
@@ -176,7 +176,7 @@ router.delete('/:id', permission('delete:posts'), async (req, res, next) => {
 
     // Delete post
     await Post.deletePost(postId);
-    
+
     res.success('Post deleted successfully');
   } catch (error) {
     logger.error('Error deleting post:', error);

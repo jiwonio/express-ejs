@@ -28,10 +28,10 @@ class Post {
    */
   static async findPostById(id) {
     const sql = `
-      SELECT p.id, p.user_id, p.title, p.content, p.created_at, p.updated_at, u.name as author_name
-      FROM posts p
-      JOIN users u ON p.user_id = u.id
-      WHERE p.id = ?
+        SELECT p.id, p.user_id, p.title, p.content, p.created_at, p.updated_at, u.name as author_name
+        FROM posts p
+                 JOIN users u ON p.user_id = u.id
+        WHERE p.id = ?
     `;
 
     const posts = await db(sql, [id]);
@@ -47,11 +47,11 @@ class Post {
    */
   static async getAllPosts({ limit = 10, offset = 0 } = {}) {
     const sql = `
-      SELECT p.id, p.user_id, p.title, p.content, p.created_at, p.updated_at, u.name as author_name
-      FROM posts p
-      JOIN users u ON p.user_id = u.id
-      ORDER BY p.created_at DESC
-      LIMIT ? OFFSET ?
+        SELECT p.id, p.user_id, p.title, p.content, p.created_at, p.updated_at, u.name as author_name
+        FROM posts p
+                 JOIN users u ON p.user_id = u.id
+        ORDER BY p.created_at DESC
+        LIMIT ? OFFSET ?
     `;
 
     return await db(sql, [String(limit), String(offset)]);
@@ -67,12 +67,12 @@ class Post {
    */
   static async getPostsByUserId(userId, { limit = 10, offset = 0 } = {}) {
     const sql = `
-      SELECT p.id, p.user_id, p.title, p.content, p.created_at, p.updated_at, u.name as author_name
-      FROM posts p
-      JOIN users u ON p.user_id = u.id
-      WHERE p.user_id = ?
-      ORDER BY p.created_at DESC
-      LIMIT ? OFFSET ?
+        SELECT p.id, p.user_id, p.title, p.content, p.created_at, p.updated_at, u.name as author_name
+        FROM posts p
+                 JOIN users u ON p.user_id = u.id
+        WHERE p.user_id = ?
+        ORDER BY p.created_at DESC
+        LIMIT ? OFFSET ?
     `;
 
     return await db(sql, [userId, String(limit), String(offset)]);
@@ -163,7 +163,7 @@ class Post {
       const [updatedPost] = await conn.execute(
         `SELECT p.id, p.user_id, p.title, p.content, p.created_at, p.updated_at, u.name as author_name
          FROM posts p
-         JOIN users u ON p.user_id = u.id
+                  JOIN users u ON p.user_id = u.id
          WHERE p.id = ?`,
         [postId]
       );
