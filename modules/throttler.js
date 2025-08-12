@@ -21,7 +21,7 @@ const createLimiters = (options = {}) => {
     ...options
   };
 
-  const keyGenerator = (req) => `${req.method}:${req.path}:${req.ip}`;
+  const keyGenerator = (req) => `${req.method}:${req.path}:${req.ip}:${req.sessionID}`;
 
   // Create limiter instances once
   const speedLimiter = slowDown({

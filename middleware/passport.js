@@ -11,9 +11,9 @@ const loginAttempts = new Map();
 // Cleanup expired login attempts
 const cleanupExpiredAttempts = (windowMs) => {
   const now = Date.now();
-  for (const [ip, data] of loginAttempts.entries()) {
+  for (const [key, data] of loginAttempts.entries()) {
     if (now - data.lastAttempt > windowMs) {
-      loginAttempts.delete(ip);
+      loginAttempts.delete(key);
     }
   }
 };
